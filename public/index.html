@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video to Soundeffect Converter</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+
+<body class="">
+    <main>
+        <label class="switch">
+            <input type="checkbox" id="darkModeSwitch">
+            <span class="slider"></span>
+        </label>
+        <h1>Video to Soundeffect Converter</h1>
+        <form id="conversionForm">
+            <label for="videoUrl">Enter the video URL:</label>
+            <input type="text" id="videoUrl" name="videoUrl" required>
+            <br>
+            <label for="startTime">Enter the start time (in seconds) for the unsped up audio (default: 0):</label>
+            <input type="number" id="startTime" name="startTime" step="0.001" min="0">
+            <br>
+            <label for="endTime">Enter the end time (in seconds) for the unsped up audio (default: full
+                duration):</label>
+            <input type="number" step="0.001" min="0" id="endTime" name="endTime">
+            <br>
+            <label for="removeSilence">Do you want to remove silence from the beginning of the audio? (default:
+                yes):</label>
+            <select id="removeSilence" name="removeSilence">
+                <option value="yes" selected>Yes</option>
+                <option value="no">No</option>
+            </select>
+            <br>
+            <label for="speedUp">Do you want to speed up the audio to 5 seconds? (default: yes):</label>
+            <select id="speedUp" name="speedUp">
+                <option value="yes" selected>Yes</option>
+                <option value="no">No</option>
+            </select>
+            <br>
+            <div class="progress-bar">
+                <div class="progress"></div>
+            </div>
+            <button type="submit">Convert</button>
+        </form>
+        <script>
+            document.getElementById('darkModeSwitch').addEventListener('change', function () {
+                document.body.classList.toggle('dark-mode');
+            });
+
+            const form = document.getElementById('conversionForm');
+            const socket = new WebSocket('ws://nanoyaki.de');
+
+            socket.addEventListener('open', (event) => {
+                console.log('WebSocket connection established:', event);
+
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+                    const data = Object.fromEntries(formData.entries());
+
+                    socket.send(JSON.stringify(data));
+                });
+            });
+
+            socket.addEventListener('message', (event) => {
+                console.log('WebSocket message received:', event);
+
+                const data = JSON.parse(event.data);
+                if (data.progress) {
+                    const progressBar = document.querySelector('.progress');
+                    progressBar.style.width = `${data.progress}%`;
+                } else if (data.filePath) window.location.href = `/download/${data.filePath}`;
+            });
+
+            socket.addEventListener('error', (event) => {
+                console.error('WebSocket error:', event);
+            });
+
+            socket.addEventListener('close', (event) => {
+                console.log('WebSocket connection closed:', event);
+            });
+        </script>
+    </main>
+</body>
+
+</html>
