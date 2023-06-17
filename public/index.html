@@ -50,7 +50,7 @@
             });
 
             const form = document.getElementById('conversionForm');
-            const socket = new WebSocket('ws://nanoyaki.de');
+            const socket = new WebSocket('ws://localhost');
 
             socket.addEventListener('open', (event) => {
                 console.log('WebSocket connection established:', event);
